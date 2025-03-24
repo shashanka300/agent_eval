@@ -476,3 +476,50 @@ class EnhancedAgentGoalAccuracy(AgentGoalAccuracy):
             print()
         
         print("=================================================\n")
+        
+class AgentRoutingAccuracy:
+    """
+    Evaluates whether the correct agent was routed to from the supervisor.
+    """
+
+    def __init__(self):
+        self.total_cases = 0
+        self.correct_routings = 0
+        self.query_routing_mapping = {}
+
+    def evaluate_agent_routing(self, query: str, actual_agent: str, expected_agent: str) -> bool:
+        self.total_cases += 1
+        is_correct = actual_agent == expected_agent
+
+        self.query_routing_mapping[query] = {
+            "expected_agent": expected_agent,
+            "actual_agent": actual_agent,
+            "is_correct": is_correct
+        }
+
+        if is_correct:
+            print(f"[AGENT ROUTING] ✅ Correct agent routed: {actual_agent}")
+            self.correct_routings += 1
+        else:
+            print(f"[AGENT ROUTING] ❌ Incorrect agent routed: {actual_agent} (expected: {expected_agent})")
+
+        return is_correct
+
+    def calculate_accuracy(self) -> float:
+        if self.total_cases == 0:
+            return 0.0
+        return self.correct_routings / self.total_cases
+
+    def print_summary(self):
+        acc = self.calculate_accuracy()
+        print("\n==== AGENT ROUTING ACCURACY SUMMARY ====")
+        print(f"Total Queries: {self.total_cases}")
+        print(f"Correct Routings: {self.correct_routings}")
+        print(f"Accuracy: {acc:.4f}")
+        print("\nQuery-Level Breakdown:")
+        for q, data in self.query_routing_mapping.items():
+            print(f"  Query: '{q}'")
+            print(f"    Expected: {data['expected_agent']}")
+            print(f"    Actual:   {data['actual_agent']}")
+            print(f"    Correct:  {data['is_correct']}")
+        print("========================================\n")

@@ -65,7 +65,7 @@ app.invoke = tracer.trace(app.invoke, name_override="supervisor",role="superviso
 
 # ========== RUN ==========
 if __name__ == "__main__":
-    querry = "What is 5 + 3?"
+    querry = "What is 20 times 3?"
     tracer.set_current_query(querry)
 
     result = app.invoke({

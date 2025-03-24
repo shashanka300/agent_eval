@@ -8,7 +8,7 @@ class EnhancedUnifiedTracer:
     def __init__(self):
         self.call_counts = {}
         self.execution_times = {}
-        self.call_order = []
+        self.call_order = {}
         self.query_function_calls = {}
         self.current_query = None
         self.execution_trace = []
@@ -16,6 +16,8 @@ class EnhancedUnifiedTracer:
     def set_current_query(self, query: str):
         self.current_query = query
         self.query_function_calls[query] = []
+        self.call_order[query] = []
+
 
     def _log(self, event_type: str, details: Any) -> None:
         trace_entry = f"[{event_type}] {details}"
@@ -33,7 +35,9 @@ class EnhancedUnifiedTracer:
                         self.query_function_calls[self.current_query].append(traced_name)
 
                 self.call_counts[traced_name] = self.call_counts.get(traced_name, 0) + 1
-                self.call_order.append(traced_name)
+                if self.current_query:
+                    self.call_order[self.current_query].append(traced_name)
+
 
                 try:
                     input_summary = {
@@ -112,7 +116,7 @@ class EnhancedUnifiedTracer:
             "execution_summary": {
                 "function_call_counts": self.call_counts,
                 "function_execution_times": function_execution_times,
-                "function_call_order": self.call_order.copy(),
+                "function_call_order": list(self.call_order.values()),
                 "query_function_calls": self.get_query_function_calls()
             }
         }

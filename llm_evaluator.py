@@ -14,16 +14,17 @@ def extract_binary_flag(text: str) -> int:
 def judge_tool_call(query: str, tool: str) -> Tuple[bool, str]:
     """
     Ask the LLM whether the tool used is appropriate for the query.
-    Returns (is_correct, reasoning).
+    Returns (is_correct, raw_response).
     """
+    if tool == "Unknown":
+        return False, "0"  # Tool not used
+
     prompt = f"""
     Query: "{query}"
     Tool Used: {tool}
 
-    Respond with 1 if this is the correct tool for the query, otherwise respond with 0.
-    After the number, briefly explain why.
-    Example:
-    1 - Because it is a factual lookup and Wikipedia is appropriate.
+    Respond only with 1 if this is the correct tool for the query, otherwise respond with 0.
+    Do not explain.
     """
     response = llm.invoke([HumanMessage(content=prompt)])
     raw_content = response.content.strip()
@@ -32,39 +33,50 @@ def judge_tool_call(query: str, tool: str) -> Tuple[bool, str]:
 
 def judge_routing(query: str, agent: str) -> Tuple[bool, str]:
     """
-    Ask the LLM whether the agent chosen is appropriate for the query.
-    Returns (is_correct, reasoning).
+    Ask the LLM whether the agent routed is appropriate for the query.
+    Returns (is_correct, raw_response).
     """
+    if agent == "Unknown":
+        return False, "0"
+
     prompt = f"""
     Query: "{query}"
     Agent Routed To: {agent}
 
-    Respond with 1 if this is the correct agent for the query, otherwise respond with 0.
-    After the number, briefly explain why.
-    Example:
-    1 - This is a math problem, so math_expert is appropriate.
+    Respond only with 1 if this is the correct agent for the query, otherwise respond with 0.
+    Do not explain.
     """
     response = llm.invoke([HumanMessage(content=prompt)])
     raw_content = response.content.strip()
     is_correct = extract_binary_flag(raw_content) == 1
     return is_correct, raw_content
 
-def judge_from_tracer(tracer, query: str) -> Tuple[Tuple[bool, str], Tuple[bool, str]]:
+def judge_from_tracer(tracer, query: str) -> Tuple[bool, bool]:
     """
     Evaluate tool and agent routing accuracy using the tracer logs and LLM as judge.
+    Returns (tool_ok, routing_ok)
     """
     calls = tracer.query_function_calls.get(query, [])
 
-    # Infer tool (typically the last call)
-    tool_used = calls[-1] if calls else "Unknown"
+    agent_used = "Unknown"
+    tool_used = "Unknown"
 
-    # Infer agent (first non-supervisor function after root call)
-    agent_used = calls[1] if len(calls) > 1 else "Unknown"
+    for entry in calls:
+        if "agent" in entry:
+            agent_used = entry["agent"]
+            break
 
-    tool_ok, tool_reason = judge_tool_call(query, tool_used)
-    routing_ok, route_reason = judge_routing(query, agent_used)
+    for entry in reversed(calls):
+        if "tool" in entry:
+            tool_used = entry["tool"]
+            break
 
-    return (tool_ok, tool_reason), (routing_ok, route_reason)
+    print(f"Detected Agent: {agent_used}, Tool: {tool_used}")
+
+    tool_ok, _ = judge_tool_call(query, tool_used)
+    routing_ok, _ = judge_routing(query, agent_used)
+
+    return tool_ok, routing_ok
 
 # Example usage
 def test_llm_evaluators():
@@ -80,17 +92,11 @@ def test_llm_evaluators():
         tracer.set_current_query(query)
         app.invoke({"messages": [{"role": "user", "content": query}]})
 
-        calls = tracer.query_function_calls.get(query, [])
-        tool_used = calls[-1] if calls else "Unknown"
-        agent_used = calls[1] if len(calls) > 1 else "Unknown"
-
-        tool_result, routing_result = judge_from_tracer(tracer, query)
+        tool_ok, routing_ok = judge_from_tracer(tracer, query)
 
         print(f"\nQuery: {query}")
-        print(f"Agent Used: {agent_used}")
-        print(f"Tool Used: {tool_used}")
-        print("Tool Call Accuracy:", tool_result)
-        print("Agent Routing Accuracy:", routing_result)
+        print("Tool Call Accuracy:", int(tool_ok))
+        print("Agent Routing Accuracy:", int(routing_ok))
 
 
 if __name__ == "__main__":
