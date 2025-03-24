@@ -73,43 +73,44 @@ def run_agent_evaluation(app, tracer, test_cases: list):
     goal_eval.print_goal_accuracy_summary()
 
 
-if __name__ == "__main__":
-    test_cases = [
-        {
-            "query": "What is 20 times 3??",
-            "expected_tool": "multiply",
-            "expected_agent": "math_agent",
-            "expected_answer": "60",
-            "topics": ["math"]
-        },
-        {
-            "query": "Who is the president of the United States?",
-            "expected_tool": "tavily_search",
-            "expected_agent": "research_agent",
-            "expected_answer": "joe biden",
-            "topics": ["biography", "history"]
-        },
-        {
-            "query": "What is the theory of relativity?",
-            "expected_tool": None,
-            "expected_agent": "research_agent",
-            "expected_answer": "relativity",
-            "topics": ["physics"]
-        },
-        {
-            "query": "Add 15 and 20",
-            "expected_tool": "add",
-            "expected_agent": "math_agent",
-            "expected_answer": "35",
-            "topics": ["math"]
-        },
-        {
-            "query": "Tell me about Newton’s laws of motion.",
-            "expected_tool": "tavily_search",
-            "expected_agent": "research_agent",
-            "expected_answer": "motion",
-            "topics": ["physics"]
-        },
-    ]
 
+test_cases = [
+    {
+        "query": "What is 20 times 3??",
+        "expected_tool": "multiply",
+        "expected_agent": "math_agent",
+        "expected_answer": "60",
+        "topics": ["math"]
+    },
+    {
+        "query": "Who is the president of the United States?",
+        "expected_tool": "tavily_search",
+        "expected_agent": "research_agent",
+        "expected_answer": "joe biden",
+        "topics": ["biography", "history"]
+    },
+    {
+        "query": "What is the theory of relativity?",
+        "expected_tool": None,
+        "expected_agent": "research_agent",
+        "expected_answer": "relativity",
+        "topics": ["physics"]
+    },
+    {
+        "query": "Add 15 and 20",
+        "expected_tool": "add",
+        "expected_agent": "math_agent",
+        "expected_answer": "35",
+        "topics": ["math"]
+    },
+    {
+        "query": "Tell me about Newton’s laws of motion.",
+        "expected_tool": "tavily_search",
+        "expected_agent": "research_agent",
+        "expected_answer": "motion",
+        "topics": ["physics"]
+    },
+]
+
+if __name__ == "__main__":
     run_agent_evaluation(app, tracer, test_cases)
