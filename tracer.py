@@ -18,10 +18,8 @@ class EnhancedUnifiedTracer:
         self.query_function_calls[query] = []
         self.call_order[query] = []
 
-
     def _log(self, event_type: str, details: Any) -> None:
         trace_entry = f"[{event_type}] {details}"
-        # print(trace_entry)
         self.execution_trace.append(trace_entry)
 
     def trace(self, target=None, *, name_override: str = None, role: str = None):
@@ -35,9 +33,9 @@ class EnhancedUnifiedTracer:
                         self.query_function_calls[self.current_query].append(traced_name)
 
                 self.call_counts[traced_name] = self.call_counts.get(traced_name, 0) + 1
+
                 if self.current_query:
                     self.call_order[self.current_query].append(traced_name)
-
 
                 try:
                     input_summary = {
@@ -116,7 +114,7 @@ class EnhancedUnifiedTracer:
             "execution_summary": {
                 "function_call_counts": self.call_counts,
                 "function_execution_times": function_execution_times,
-                "function_call_order": list(self.call_order.values()),
+                "function_call_order": self.call_order.get(self.current_query, []),
                 "query_function_calls": self.get_query_function_calls()
             }
         }
@@ -130,3 +128,8 @@ class EnhancedUnifiedTracer:
         summary = self.get_execution_summary()
         print("\n=== Execution Summary ===")
         print(json.dumps(summary, indent=2))
+
+    def print_call_order(self) -> None:
+        print("\n=== Function Call Order ===")
+        call_order = self.call_order.get(self.current_query, [])
+        print(json.dumps(call_order, indent=2))
