@@ -2,6 +2,8 @@
 
 This project evaluates agent-based workflows using an LLM-based judge (Ollama) and a tracer that logs detailed execution traces.
 
+For quick demo Run 
+streamlit run Dashboard.py
 ---
 
 ## ✅ Features
