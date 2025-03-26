@@ -1,0 +1,13 @@
+langgraph-supervisor
+langchain-ollama
+langchain
+langchain-community
+numexpr
+langchain-tavily
+streamlit
+pandas
+matplotlib
+seaborn
+networkx
+pyvis
+crewai-tools
